@@ -1,0 +1,10 @@
+[package]
+name = "pkgman"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+colored = "3.0.0"
+tar = "0.4.44"
+tempfile = "3.24.0"
+zstd = "0.13.3"
