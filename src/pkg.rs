@@ -6,16 +6,28 @@ use zstd::stream::read::Decoder;
 use tempfile::tempdir;
 use crate::state;
 use std::path::PathBuf; // needed for join in remove
-
-fn err(msg: &str) -> impl Fn(std::io::Error) -> () + '_ {
-    move |e| {
-        eprintln!("{}: {}", msg, e);
-        ()
-    }
-}
+use crate::utils::{err, confirm};
 
 pub fn install(archive: &str) -> Result<(), ()> {
-    let name = archive.trim_end_matches(".tar.zst").to_string();
+    let name = archive.trim_end_matches(".tar.zst");
+    let archive_size = fs::metadata(archive).map(|m| m.len()).unwrap_or(0);
+    println!("\nName: {}\n", name);
+    println!("Archive size: {:.2} MB", archive_size as f64 / 1024.0 / 1024.0);
+
+    let available_space_gb = match fs2::available_space("/") {
+        Ok(space) => space as f64 / (1024.0 * 1024.0 * 1024.0),
+        Err(e) => {
+            eprintln!("Error getting available space: {}", e);
+            return Ok(());
+        }
+    };
+
+    println!("Space on disk: {:.2} GB\n", available_space_gb);
+
+    if !confirm("Do you want to continue?") {
+        println!("Cancelling.");
+        return Ok(());
+    }
 
     // check if already installed
     if let Ok(contents) = std::fs::read_to_string("/var/lib/vlpkg/installed.log") {
@@ -77,7 +89,21 @@ pub fn install(archive: &str) -> Result<(), ()> {
     Ok(())
 }
 
+
 pub fn remove(name: &str) -> Result<(), ()> {
+    let available_space_gb = match fs2::available_space("/") { // TODO: add to utils.rs later
+        Ok(space) => space as f64 / (1024.0 * 1024.0 * 1024.0),
+        Err(e) => {
+            eprintln!("Error getting available space: {}", e);
+            return Ok(());
+        }
+    };
+    println!("\nPackage: {}\n", name);
+    println!("Space on disk: {:.2} GB\n", available_space_gb);
+    if !confirm("Do you want to continue?") {
+        println!("Cancelling.");
+        return Ok(());
+    }
     // check if not installed
     let installed = std::fs::read_to_string("/var/lib/vlpkg/installed.log")
         .unwrap_or_default();
