@@ -1,5 +1,5 @@
 [package]
-name = "pkgman"
+name = "vlpkg"
 version = "0.1.0"
 edition = "2024"
 
