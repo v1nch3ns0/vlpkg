@@ -39,7 +39,7 @@ pub fn install(archive: &str) -> Result<(), ()> {
 
     // setup temp stuff
     let tempdir = tempdir().map_err(err("Failed to create tempdir"))?;
-    let extract_dir = tempdir.path().join(&name);
+    let extract_dir = tempdir.path();
     println!("Installing {}", &name);
     fs::create_dir_all(&extract_dir)
         .map_err(err("Failed to create extract dir"))?;
